@@ -4,7 +4,7 @@ from typing import Annotated
 
 import httpx
 import asyncio
-from fastapi import HTTPException, Depends
+from fastapi import HTTPException, Depends, status
 
 from app.core import Settings, get_settings, get_httpx_client, get_refresh_lock
 
@@ -15,14 +15,18 @@ async def fetch_fresh_token(
         settings: Settings,
         client: httpx.AsyncClient,
 ) -> tuple[str, float]:
-    resp = await client.post(
+    response = await client.post(
         TOKEN_URL,
         data={"grant_type": "client_credentials"},
         auth=(settings.CLIENT_ID, settings.CLIENT_SECRET),
     )
-    if resp.status_code != 200:
-        raise HTTPException(resp.status_code, resp.text)
-    data = resp.json()
+    if response.status_code != 200:
+        raise HTTPException(response.status_code, response.text)
+
+    if response.status_code >= 500:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
+
+    data = response.json()
     return data["access_token"], time.time() + data["expires_in"]
 
 
@@ -39,7 +43,6 @@ async def get_token(
     bag = _token_holder()
     access, exp = bag.get("spotify", ("", 0.0))
 
-    # если токена нет или кончается <30 с
     if not access or exp - time.time() < 30:
         async with lock:  # ☑ гарантируем один refresh
             access, exp = bag.get("spotify", ("", 0.0))

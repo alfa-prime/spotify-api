@@ -1,7 +1,7 @@
 from typing import Annotated
 
 import httpx
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, status
 
 from app.services import get_token
 from app.core import get_httpx_client
@@ -38,6 +38,9 @@ async def search_playlists(
     if response.status_code != 200:
         raise HTTPException(response.status_code, response.text)
 
+    if response.status_code >= 500:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
+
     return response.json()
 
 
@@ -70,6 +73,9 @@ async def search_tracks(
     if response.status_code != 200:
         raise HTTPException(response.status_code, response.text)
 
+    if response.status_code >= 500:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
+
     return response.json()
 
 
@@ -101,5 +107,8 @@ async def search_albums(
 
     if response.status_code != 200:
         raise HTTPException(response.status_code, response.text)
+
+    if response.status_code >= 500:
+        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
 
     return response.json()
