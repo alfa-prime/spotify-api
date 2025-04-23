@@ -7,7 +7,7 @@ from app.routers import router_spotify
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):  # noqa
     app.state.httpx = httpx.AsyncClient(timeout=10)
     yield
     await app.state.httpx.aclose()
