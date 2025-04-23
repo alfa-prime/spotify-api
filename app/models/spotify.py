@@ -21,7 +21,14 @@ class TrackItem(BaseModel):
     preview_url: Optional[HttpUrl] = Field(
         None, description="30-секундное превью трека"
     )
-    external_url: HttpUrl = Field(..., alias="external_urls.spotify")
+    external_urls: Dict[str, HttpUrl]
+
+    @property
+    def external_url(self) -> HttpUrl:  # noqa: D401
+        """Удобный «плоский» доступ к ссылке Spotify."""
+        return self.external_urls["spotify"]
+
+    model_config = ConfigDict(extra="ignore")
 
 
 class TracksPage(BaseModel):
@@ -29,6 +36,8 @@ class TracksPage(BaseModel):
     total: int
     offset: int
     limit: int
+
+    model_config = ConfigDict(extra="ignore")
 
 
 # ── Плейлисты ─────────────────────────────
@@ -57,6 +66,8 @@ class PlaylistsPage(BaseModel):
     offset: int
     limit: int
 
+    model_config = ConfigDict(extra="ignore")
+
 
 # ── Альбомы ───────────────────────────────
 class AlbumItem(BaseModel):
@@ -65,7 +76,14 @@ class AlbumItem(BaseModel):
     release_date: str
     images: List[Image]
     artists: List[ArtistMini]
-    external_url: HttpUrl = Field(..., alias="external_urls.spotify")
+
+    external_urls: Dict[str, HttpUrl]
+
+    @property
+    def external_url(self) -> HttpUrl:
+        return self.external_urls["spotify"]
+
+    model_config = ConfigDict(extra="ignore")
 
 
 class AlbumsPage(BaseModel):
@@ -73,3 +91,5 @@ class AlbumsPage(BaseModel):
     total: int
     offset: int
     limit: int
+
+    model_config = ConfigDict(extra="ignore")
