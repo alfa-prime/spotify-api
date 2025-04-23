@@ -35,11 +35,10 @@ async def search_playlists(
         },
     )
 
-    if response.status_code != 200:
-        raise HTTPException(response.status_code, response.text)
-
     if response.status_code >= 500:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
+    elif response.status_code != 200:
+        raise HTTPException(response.status_code, response.text)
 
     return response.json()
 
@@ -70,11 +69,10 @@ async def search_tracks(
         },
     )
 
-    if response.status_code != 200:
-        raise HTTPException(response.status_code, response.text)
-
     if response.status_code >= 500:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
+    elif response.status_code != 200:
+        raise HTTPException(response.status_code, response.text)
 
     return response.json()
 
@@ -105,10 +103,9 @@ async def search_albums(
         },
     )
 
-    if response.status_code != 200:
-        raise HTTPException(response.status_code, response.text)
-
     if response.status_code >= 500:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
+    elif response.status_code != 200:
+        raise HTTPException(response.status_code, response.text)
 
     return response.json()

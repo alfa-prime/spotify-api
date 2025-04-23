@@ -20,11 +20,10 @@ async def fetch_fresh_token(
         data={"grant_type": "client_credentials"},
         auth=(settings.CLIENT_ID, settings.CLIENT_SECRET),
     )
-    if response.status_code != 200:
-        raise HTTPException(response.status_code, response.text)
-
     if response.status_code >= 500:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
+    elif response.status_code != 200:
+        raise HTTPException(response.status_code, response.text)
 
     data = response.json()
     return data["access_token"], time.time() + data["expires_in"]
