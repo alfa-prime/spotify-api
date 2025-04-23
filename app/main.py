@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 import httpx
+import asyncio
 from fastapi import FastAPI
 
 from app.routers import router_spotify
@@ -9,6 +10,7 @@ from app.routers import router_spotify
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # noqa
     app.state.httpx = httpx.AsyncClient(timeout=10)
+    app.state.refresh_lock = asyncio.Lock()
     yield
     await app.state.httpx.aclose()
 
