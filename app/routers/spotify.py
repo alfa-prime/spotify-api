@@ -1,26 +1,108 @@
 from typing import Annotated
 
 import httpx
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, HTTPException
 
 from app.core import get_settings
-from app.core.config import Settings
+from app.services import get_token
+
+settings = get_settings()
+API_SEARCH_URL = settings.API_SEARCH_URL
 
 router = APIRouter(prefix="/spotify", tags=["spotify"])
 
 
-@router.get("/token")
-async def get_token(settings: Annotated[Settings, Depends(get_settings)]):
-    async with httpx.AsyncClient() as client:
-        url = "https://accounts.spotify.com/api/token"
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
-        params = {
-            "grant_type": "client_credentials",
-            "client_id": settings.CLIENT_ID,
-            "client_secret": settings.CLIENT_SECRET
+@router.get("/search/playlists")
+async def search_playlists(
+        token: Annotated[str, Depends(get_token)],
+        query: Annotated[str, Query(min_length=1, description="The search query")],
+        limit: Annotated[int, Query(ge=1, le=50)] = 10,
+        offset: Annotated[int, Query(ge=0)] = 0
+):
+    """
+    Поиск публичных плейлистов по ключевым словам.
+    Spotify API → GET /v1/search?type=playlist
+    """
+    async with httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {token}"}
+    ) as client:
+        response = await client.get(
+            url=API_SEARCH_URL,
+            params={
+                "q": query,
+                "type": "playlist",
+                "limit": limit,
+                "offset": offset,
+            },
+        )
 
-        }
+    if response.status_code != 200:
+        raise HTTPException(response.status_code, response.text)
 
-        response = await client.post(url, headers=headers, params=params)
+    return response.json()
+
+
+@router.get("/search/tracks")
+async def search_tracks(
+        token: Annotated[str, Depends(get_token)],
+        query: Annotated[str, Query(min_length=1, description="Строка поиска")],
+        limit: Annotated[int, Query(ge=1, le=50)] = 10,
+        offset: Annotated[int, Query(ge=0)] = 0,
+        market: Annotated[str | None, Query(min_length=2, max_length=2)] = None,  # ISO-3166 код, напр. RU
+
+):
+    """
+    Ищем публичные треки.
+    Spotify: GET /v1/search?type=track
+    """
+    async with httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {token}"}
+    ) as client:
+        resp = await client.get(
+            url=API_SEARCH_URL,
+            params={
+                "q": query,
+                "type": "track",
+                "limit": limit,
+                "offset": offset,
+                **({"market": market} if market else {}),
+            },
+        )
+
+    if resp.status_code != 200:
+        raise HTTPException(resp.status_code, resp.text)
+
+    return resp.json()
+
+
+@router.get("/albums/search")
+async def search_albums(
+        token: Annotated[str, Depends(get_token)],
+        query: Annotated[str, Query(min_length=1, description="Название/артист")],
+        limit: Annotated[int, Query(ge=1, le=50)] = 10,
+        offset: Annotated[int, Query(ge=0)] = 0,
+        market: Annotated[str | None, Query(min_length=2, max_length=2)] = None,  # ISO-3166 код страны
+
+):
+    """
+    Поиск публичных альбомов.
+    Spotify → GET /v1/search?type=album
+    """
+    async with httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {token}"}
+    ) as client:
+        response = await client.get(
+            url=API_SEARCH_URL,
+            params={
+                "q": query,
+                "type": "album",
+                "limit": limit,
+                "offset": offset,
+                **({"market": market} if market else {}),
+            },
+        )
+
+    if response.status_code != 200:
+        raise HTTPException(response.status_code, response.text)
 
     return response.json()

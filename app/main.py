@@ -3,8 +3,8 @@ from fastapi import FastAPI
 
 
 app = FastAPI(
-    title="Nord-Cloud Spotify API",
-    summary="Бридж между GPT-шкой и Spotify",
+    title="Nord-Cloud Music search API",
+    summary="Бридж между GPT-шкой и Spotify | Youtube music",
     version="0.1.0",
 )
 
