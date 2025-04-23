@@ -9,6 +9,8 @@ from pydantic import BaseModel
 from app.core import Settings, get_settings
 
 
+TOKEN_URL = "https://accounts.spotify.com/api/token"
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -23,7 +25,7 @@ def _token_holder() -> dict[str, Token]:
 async def fetch_fresh_token(settings: Settings) -> Token:
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            settings.TOKEN_URL,
+            TOKEN_URL,
             data={"grant_type": "client_credentials"},
             auth=(settings.CLIENT_ID, settings.CLIENT_SECRET)
         )

@@ -3,11 +3,9 @@ from typing import Annotated
 import httpx
 from fastapi import APIRouter, Depends, Query, HTTPException
 
-from app.core import get_settings
 from app.services import get_token
 
-settings = get_settings()
-API_SEARCH_URL = settings.API_SEARCH_URL
+SEARCH_URL = "https://api.spotify.com/v1/search"
 
 router = APIRouter(prefix="/spotify", tags=["spotify"])
 
@@ -27,7 +25,7 @@ async def search_playlists(
             headers={"Authorization": f"Bearer {token}"}
     ) as client:
         response = await client.get(
-            url=API_SEARCH_URL,
+            url=SEARCH_URL,
             params={
                 "q": query,
                 "type": "playlist",
@@ -59,7 +57,7 @@ async def search_tracks(
             headers={"Authorization": f"Bearer {token}"}
     ) as client:
         resp = await client.get(
-            url=API_SEARCH_URL,
+            url=SEARCH_URL,
             params={
                 "q": query,
                 "type": "track",
@@ -75,7 +73,7 @@ async def search_tracks(
     return resp.json()
 
 
-@router.get("/albums/search")
+@router.get("/search/albums")
 async def search_albums(
         token: Annotated[str, Depends(get_token)],
         query: Annotated[str, Query(min_length=1, description="Название/артист")],
@@ -92,7 +90,7 @@ async def search_albums(
             headers={"Authorization": f"Bearer {token}"}
     ) as client:
         response = await client.get(
-            url=API_SEARCH_URL,
+            url=SEARCH_URL,
             params={
                 "q": query,
                 "type": "album",
