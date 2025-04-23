@@ -6,6 +6,7 @@ import httpx
 import asyncio
 from fastapi import HTTPException, Depends, status
 
+from app.services.response_guard import raise_if_error
 from app.core import Settings, get_settings, get_httpx_client, get_refresh_lock
 
 TOKEN_URL = "https://accounts.spotify.com/api/token"
@@ -20,11 +21,7 @@ async def fetch_fresh_token(
         data={"grant_type": "client_credentials"},
         auth=(settings.CLIENT_ID, settings.CLIENT_SECRET),
     )
-    if response.status_code >= 500:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
-    elif response.status_code != 200:
-        raise HTTPException(response.status_code, response.text)
-
+    raise_if_error(response)
     data = response.json()
     return data["access_token"], time.time() + data["expires_in"]
 

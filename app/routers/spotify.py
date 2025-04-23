@@ -1,17 +1,18 @@
 from typing import Annotated
 
 import httpx
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+from fastapi import APIRouter, Depends, Query
 
-from app.services import get_token
+from app.services import get_token, raise_if_error
 from app.core import get_httpx_client
+from app.models.spotify import PlaylistsPage, TracksPage, AlbumsPage
 
 SEARCH_URL = "https://api.spotify.com/v1/search"
 
 router = APIRouter(prefix="/spotify", tags=["spotify"])
 
 
-@router.get("/search/playlists")
+@router.get("/search/playlists", response_model=PlaylistsPage)
 async def search_playlists(
         token: Annotated[str, Depends(get_token)],
         client: Annotated[httpx.AsyncClient, Depends(get_httpx_client)],
@@ -23,7 +24,6 @@ async def search_playlists(
     Поиск публичных плейлистов по ключевым словам.
     Spotify API → GET /v1/search?type=playlist
     """
-
     response = await client.get(
         url=SEARCH_URL,
         headers={"Authorization": f"Bearer {token}"},
@@ -34,13 +34,11 @@ async def search_playlists(
             "offset": offset,
         },
     )
+    raise_if_error(response)
 
-    if response.status_code >= 500:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
-    elif response.status_code != 200:
-        raise HTTPException(response.status_code, response.text)
-
-    return response.json()
+    raw = response.json()["playlists"]
+    raw["items"] = [pl for pl in raw["items"] if pl is not None]
+    return raw
 
 
 @router.get("/search/tracks")
@@ -68,12 +66,7 @@ async def search_tracks(
             **({"market": market} if market else {}),
         },
     )
-
-    if response.status_code >= 500:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
-    elif response.status_code != 200:
-        raise HTTPException(response.status_code, response.text)
-
+    raise_if_error(response)
     return response.json()
 
 
@@ -102,10 +95,5 @@ async def search_albums(
             **({"market": market} if market else {}),
         },
     )
-
-    if response.status_code >= 500:
-        raise HTTPException(status.HTTP_502_BAD_GATEWAY, detail="Upstream Spotify error")
-    elif response.status_code != 200:
-        raise HTTPException(response.status_code, response.text)
-
+    raise_if_error(response)
     return response.json()
