@@ -14,7 +14,7 @@ TOKEN_URL = "https://accounts.spotify.com/api/token"
 async def fetch_fresh_token(
         settings: Settings,
         client: httpx.AsyncClient,
-) -> tuple:
+) -> tuple[str, float]:
     resp = await client.post(
         TOKEN_URL,
         data={"grant_type": "client_credentials"},

@@ -9,7 +9,7 @@ from app.routers import router_spotify
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # noqa
-    app.state.httpx = httpx.AsyncClient(timeout=10)
+    app.state.httpx = httpx.AsyncClient(timeout=10, headers={'User-Agent': 'nord-cloud-music-api/1.0'})
     app.state.refresh_lock = asyncio.Lock()
     yield
     await app.state.httpx.aclose()
