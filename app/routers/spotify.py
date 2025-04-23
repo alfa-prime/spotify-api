@@ -37,7 +37,7 @@ async def search_playlists(
     raise_if_error(response)
 
     raw = response.json()["playlists"]
-    raw["items"] = [pl for pl in raw["items"] if pl is not None]
+    raw["items"] = [playlist for playlist in raw["items"] if playlist is not None]
     return raw
 
 
@@ -70,7 +70,7 @@ async def search_tracks(
     return response.json()["tracks"]
 
 
-@router.get("/search/albums", response_model=AlbumsPage)
+@router.get("/search/ç", response_model=AlbumsPage)
 async def search_albums(
         token: Annotated[str, Depends(get_token)],
         client: Annotated[httpx.AsyncClient, Depends(get_httpx_client)],
@@ -98,5 +98,5 @@ async def search_albums(
     raise_if_error(response)
 
     raw = response.json()["albums"]  # достаём вложенный объект
-    raw["items"] = [alb for alb in raw["items"] if alb is not None]  # Spotify иногда шлёт null
+    raw["items"] = [album for album in raw["items"] if album is not None]  # Spotify иногда шлёт null
     return raw

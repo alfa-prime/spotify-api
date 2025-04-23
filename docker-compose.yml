@@ -1,0 +1,17 @@
+services:
+  api:
+    # собираем образ из текущей папки
+    build: .
+    container_name: nord-music-api
+
+    # SECRET-ы берём из локального .env (лежит рядом)
+    env_file:
+      - .env
+
+    # пробрасываем порт наружу
+    ports:
+      - "9000:9000"
+
+    # перезапускаем при падении / ребуте сервера
+    restart: unless-stopped
+
