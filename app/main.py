@@ -18,7 +18,8 @@ async def lifespan(app: FastAPI):  # noqa
 app = FastAPI(
     lifespan=lifespan,
     title="Nord-Cloud Music search API",
-    summary="Бридж между GPT-шкой и Spotify | Youtube music",
+    summary="Бридж между GPT-шкой и Spotify",
+    servers=[{"url": "https://api.nord-cloud.ru"}],
     version="0.1.0",
 )
 
