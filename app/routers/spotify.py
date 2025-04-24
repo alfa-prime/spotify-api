@@ -70,7 +70,7 @@ async def search_tracks(
     return response.json()["tracks"]
 
 
-@router.get("/search", response_model=AlbumsPage)
+@router.get("/search/albums", response_model=AlbumsPage)
 async def search_albums(
         token: Annotated[str, Depends(get_token)],
         client: Annotated[httpx.AsyncClient, Depends(get_httpx_client)],
